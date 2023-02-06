@@ -18,7 +18,7 @@ commands:
   destroy_environment:
     description: Destroy backend and frontend cloudformation stacks given a workflow ID.
     parameters:
-      workflow_id:
+      workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
         type: string
     steps:
       - run:
@@ -171,7 +171,7 @@ jobs:
       # Docker image here that supports Ansible
       - image: cimg/base:stable
     steps:
-      - checkout
+      - Checkout
       - add_ssh_keys:
           fingerprints:
             - "79:b9:38:cc:04:11:26:53:a6:df:90:90:cd:78:87:96" 
