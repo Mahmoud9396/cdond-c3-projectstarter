@@ -4,6 +4,44 @@ version: 2.1
 
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
+commands:
+  install_ansible:
+    description: install Ansible
+    steps:
+      - run:
+          name: Install Ansible
+          command: |
+            sudo apt update
+            sudo apt install software-prperties-common -y
+            sudo add-apt-repository --yes --update ppa:ansible/ansible
+            sudo apt install ansible -y
+  destroy_environment:
+    description: Destroy backend and frontend cloudformation stacks given a workflow ID.
+    parameters:
+      workflow_id:
+        type: string
+    steps:
+      - run:
+          name: Destroy environments
+          when: on_fail
+          command: |
+            echo "Destroying environment: <<parameters.workflow_id>> "
+            aws cloudformation delete-stack --stack-name udapeople-backend-<<parameters.workflow_id>>
+            aws s3 rm s3://udapeople-<<parameters.workflow_id>> --recursive
+            aws cloudformation delete-stack --stack-name udapeople-frontend-<<parameters.workflow_id>>
+
+  revert-migrations:
+    description: Revert the last migration if successfully run in the current workflow.
+    steps:
+      - run:
+          name: Revert migrations
+          when: on_fail
+          command: |
+            cd ~/project/backend
+            if [[ -f "~/project/.circleci/outputs/db_migration_success" ]]; then
+              npm i
+              npm run migration:revert
+            fi
 jobs:
   build-frontend:
     # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
@@ -32,7 +70,6 @@ jobs:
              cd backend
              npm install
              npm run build   
-
   test-frontend:
     docker:
       - image: circleci/node:13.8.0
@@ -99,7 +136,6 @@ jobs:
               --tags project=udapeople \
               --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
-
       - run:
           name: Ensure front-end infrastructure exist
           command: |
@@ -130,6 +166,46 @@ jobs:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt           
+  configure-infrastructure:
+    docker:
+      # Docker image here that supports Ansible
+      - image: cimg/base:stable
+    steps:
+      - Checkout
+      - add_ssh_keys:
+          fingerprints:
+            - "79:b9:38:cc:04:11:26:53:a6:df:90:90:cd:78:87:96" 
+      # Add ssh keys with fingerprint
+      - attach_workspace:
+            at: ~/
+
+      - install_ansible
+      - run:
+          name: Configure server
+          command: |
+            cd .circleci/ansible
+            cat inventory.txt
+            ansible-playbook -i inventory.txt configure-server.yml
+      - destroy_environment
+      # Here's where you will add some code to rollback on failure      
+
+  run-migrations:
+    docker:
+      # Docker image here that supports NodeJS
+    steps:
+      # Checkout code from git
+      - run:
+          name: Run migrations
+          command: |
+            # Your code here
+      - run:
+          name: Send migration results to memstash
+          command: |
+            # Your code here
+
+     # Here's where you will add some code to rollback on failure      
+
+
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
@@ -147,4 +223,3 @@ workflows:
           requires: [test-frontend]
       - deploy-infrastructure:
           requires: [test-frontend, test-backend, analyze_frontend, analyze_backend]
-        
