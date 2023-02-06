@@ -113,20 +113,19 @@ jobs:
           name: Add back-end ip to ansible inventory
           command: |
             cd .circleci/ansible
+            ansible-playbook -i inventory.txt configure-server.yml
             cat inventory.txt
             aws ec2 describe-instances \
-              --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --output text --filters Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7} >> inventory.txt
-              cat inventory.txt
-              # export BACKEND_AWS_PUBLIC_IP=$(aws ec2 describe-instances \
-              #--filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              #--query 'Reservations[*].Instances[*].PublicIpAddress' \
-              #--output text )
-            #echo "http://$BACKEND_AWS_PUBLIC_IP:3030" >> .circleci/ansible/inventory.txt
-            #echo "[all]" >> .circleci/ansible/inventory.txt
-            #echo "$BACKEND_AWS_PUBLIC_IP" >> .circleci/ansible/inventory.txt
-
-            cat .circleci/ansible/inventory.txt
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --output text --filters Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7} >> inventory.txt
+            cat inventory.txt
+            # export BACKEND_AWS_PUBLIC_IP=$(aws ec2 describe-instances \
+            # --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+            # --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            # --output text )
+            # echo "http://$BACKEND_AWS_PUBLIC_IP:3030" >> .circleci/ansible/inventory.txt
+            # echo "[all]" >> .circleci/ansible/inventory.txt
+            # echo "$BACKEND_AWS_PUBLIC_IP" >> .circleci/ansible/inventory.txt
       - run: yum -y install tar gzip
       - persist_to_workspace:
           root: ~/
