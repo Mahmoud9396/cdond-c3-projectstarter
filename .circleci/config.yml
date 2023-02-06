@@ -204,11 +204,7 @@ jobs:
             if grep -q "has been executed successfully." migration_output.txt
             then
               touch ~/project/.circleci/outputs/db_migration_success
-            fi
-      - run:
-          name: Install dependencies
-          command: |
-            pip install awscli            
+            fi         
 
       - destroy_environment
       - revert-migrations
