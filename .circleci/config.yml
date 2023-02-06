@@ -92,8 +92,6 @@ workflows:
       - test-backend:
           requires: [build-backend]
       - analyze_backend:
-          requires:
-            - test_backend
+          requires: [test-backend]
       - analyze_frontend:
-          requires:
-            - test_frontend
+          requires: [test-frontend]
