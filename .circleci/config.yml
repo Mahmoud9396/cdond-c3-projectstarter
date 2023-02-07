@@ -194,7 +194,7 @@ jobs:
               ansible-playbook -i inventory.txt configure-server.yml
   run-migrations:
     docker:
-      - image: circleci/node:13.8.0
+      - image: cimg/node:13.8.0
     steps:
       - checkout
       - run:
@@ -212,7 +212,7 @@ jobs:
             if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
             then
             echo "cd backend"
-              curl --insecure https://kvdb.io/6fTkw3pCWGCmuN14JC7nXb//migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
+              curl --insecure https://kvdb.io/WzgBMq8m3sC4V4bw4nTMT4//migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
             echo "cd backend"
  
