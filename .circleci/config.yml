@@ -197,34 +197,24 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - build-backend
       - run:
           name: Run migrations
           command: |
             cd backend
             echo "cd backend"
-            npm i
-            npm run build
+            npm install
             npm run migrations > migrations_dump.txt
-            cat migrations_dump.txt
             echo "cd backend"
       - run:
           name: Send migration results to memstash
           command: |
-            cd backend
             echo "cd backend"
             if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
             then
-              curl https://kvdb.io/6fTkw3pCWGCmuN14JC7nXb//migration_${CIRCLE_WORKFLOW_ID:0:7} \
-                -H "X-Api-Key: ${THISDB_API_KEY}" \
-                -d "1"
-            else
-              curl https://kvdb.io/6fTkw3pCWGCmuN14JC7nXb//migration_${CIRCLE_WORKFLOW_ID:0:7} \
-                -H "X-Api-Key: ${THISDB_API_KEY}" \
-                -d "0"
+            echo "cd backend"
+              curl --insecure https://kvdb.io/6fTkw3pCWGCmuN14JC7nXb//migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
+            echo "cd backend"
  
      # - destroy_environment
      # - revert-migrations
