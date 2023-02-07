@@ -223,7 +223,7 @@ jobs:
      # Here's where you will add some code to rollback on failure      
   deploy-frontend:
     docker:
-      - image: amazon/aws-cli
+      - image: cimg/node:13.8.0
     steps:
       - checkout
       - restore_cache:
@@ -258,9 +258,7 @@ jobs:
             npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}" --recursive
-      - destroy_environment
-      - revert-migrations 
-
+      # Here's where you will add some code to rollback on failure  
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
