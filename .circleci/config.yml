@@ -217,8 +217,8 @@ jobs:
               curl https://kvdb.io/6fTkw3pCWGCmuN14JC7nXb/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
  
-      - destroy_environment
-      - revert-migrations
+     # - destroy_environment
+     # - revert-migrations
      # Here's where you will add some code to rollback on failure      
   deploy-frontend:
     docker:
