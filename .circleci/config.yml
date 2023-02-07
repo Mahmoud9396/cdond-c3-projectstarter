@@ -208,7 +208,7 @@ jobs:
             npm run migrations > migrations_dump.txt
             echo "cd backend"
       - run:
-          name: Send migration results to memstash
+          name: Send migration results to kvdb
           command: |
             echo "cd backend"
             if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
@@ -258,7 +258,45 @@ jobs:
             npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}" --recursive
-      # Here's where you will add some code to rollback on failure  
+      - destroy_environment
+      - revert-migrations 
+  deploy-backend:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - build-backend      
+      - add_ssh_keys:
+          fingerprints:
+            - "79:b9:38:cc:04:11:26:53:a6:df:90:90:cd:78:87:96" 
+      # Add ssh keys with fingerprint
+      - attach_workspace:
+            at: ~/   
+      - run:
+          name: Installing necessary packages
+          command: |
+            sudo apt update
+            sudo apt install -y tar gzip curl software-properties-common
+      - run:
+          name: Installing aws-cli
+          command: |
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscli.zip"
+            unzip awscli.zip
+            sudo ./aws/install
+      - install_ansible
+      - run:
+          name: Deploy backend
+          command: |
+            cd backend
+            npm install
+            npm run build
+            cd ..
+            tar -C backend -czvf artifact.tar.gz .
+            cat ~/project/.circleci/ansible/inventory.txt
+            ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
+      - destroy_environment 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
@@ -282,4 +320,5 @@ workflows:
           requires: [configure-infrastructure]
       - deploy-frontend:
           requires: [run-migrations]     
-
+      - deploy-backend:
+          requires: [run-migrations] 
