@@ -281,8 +281,7 @@ jobs:
           keys:
             - build-backend      
       - add_ssh_keys:
-          fingerprints:
-            - "79:b9:38:cc:04:11:26:53:a6:df:90:90:cd:78:87:96" 
+          fingerprints: ["79:b9:38:cc:04:11:26:53:a6:df:90:90:cd:78:87:96"] 
       # Add ssh keys with fingerprint
       - attach_workspace:
             at: ~/
