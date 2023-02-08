@@ -261,7 +261,7 @@ jobs:
             aws s3 cp dist "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}" --recursive 
   deploy-backend:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: cimg/python:3.10
         environment:
           NODE_ENV: "production"
           VERSION: "1"
@@ -284,16 +284,26 @@ jobs:
       - attach_workspace:
             at: ~/
       - run:
-          name: Install necessary dependencies
+          name: Installing necessary packages
           command: |
             sudo apt update
-            sudo apt install -y tar gzip curl software-properties-common            
+            sudo apt install -y tar gzip curl software-properties-common
+      - run:
+          name: Installing aws-cli
+          command: |
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscli.zip"
+            unzip -o awscli.zip
+            sudo ./aws/install
+      - install_ansible            
+      - run:
+          name: Install necessary dependencies
+          command: |           
             apk add --update ansible nodejs npm tar gzip
       - run:
           name: Deploy backend
           command: |
             cd backend
-            npm i
+            npm install
             npm run build
             cd ..
             tar -C backend -czvf artifact.tar.gz .
