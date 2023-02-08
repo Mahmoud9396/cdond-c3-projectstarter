@@ -301,7 +301,7 @@ jobs:
             npm run build
             cd ..
             tar -C backend -czvf artifact.tar.gz .
-            echo "tar -C backend -czvf artifact.tar.gz .   command is done"
+            echo "tar -C backend -czvf artifact.tar.gz command is done"
             cd .circleci/ansible
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
