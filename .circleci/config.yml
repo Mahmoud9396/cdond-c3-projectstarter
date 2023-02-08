@@ -239,7 +239,7 @@ jobs:
           name: Installing aws-cli
           command: |
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscli.zip"
-            unzip awscli.zip
+            unzip -o awscli.zip
             sudo ./aws/install
       - install_ansible
       - run:
@@ -263,7 +263,7 @@ jobs:
       - revert-migrations 
   deploy-backend:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: cimg/node:13.8.0
     steps:
       - checkout
       - restore_cache:
@@ -280,6 +280,12 @@ jobs:
           command: |
             sudo apt update
             sudo apt install -y tar gzip curl software-properties-common
+      - run:
+          name: Installing aws-cli
+          command: |
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscli.zip"
+            unzip -o awscli.zip
+            sudo ./aws/install  
       - run:
           name: Deploy backend
           command: |
