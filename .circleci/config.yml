@@ -286,6 +286,8 @@ jobs:
       - run:
           name: Install necessary dependencies
           command: |
+            sudo apt update
+            sudo apt install -y tar gzip curl software-properties-common            
             apk add --update ansible nodejs npm tar gzip
       - run:
           name: Deploy backend
