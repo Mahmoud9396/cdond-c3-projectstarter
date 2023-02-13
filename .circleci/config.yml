@@ -278,7 +278,6 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "79:b9:38:cc:04:11:26:53:a6:df:90:90:cd:78:87:96" 
-      # Add ssh keys with fingerprint
       - attach_workspace:
             at: ~/
       - run:
@@ -306,7 +305,8 @@ jobs:
             cd .circleci/ansible
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
-            ansible-playbook -i inventory.txt deploy-backend.yml  
+            ansible-playbook -i inventory.txt deploy-backend.yml 
+            yes
       - destroy_environment
       - revert-migrations
       # Invoke jobs via workflows
