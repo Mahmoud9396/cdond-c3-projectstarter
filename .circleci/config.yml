@@ -25,18 +25,11 @@ commands:
             sudo apt install -y nodejs             
   destroy_environment:
     description: Destroy backend and frontend cloudformation stacks given a workflow ID.
+    parameters:
+      Workflow_ID:
+        type: string
+        default: ${CIRCLE_WORKFLOW_ID:0:7}    
     steps:
-      - run:
-          name: Installing necessary packages
-          command: |
-            sudo apt update
-            sudo apt install -y tar gzip curl software-properties-common
-      - run:
-          name: Installing aws-cli
-          command: |
-            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscli.zip"
-            unzip -o awscli.zip
-            sudo ./aws/install
       - run:
           name: Destroy environments
           when: on_fail
@@ -282,8 +275,7 @@ jobs:
       - add_ssh_keys:
           fingerprints: [ "79:b9:38:cc:04:11:26:53:a6:df:90:90:cd:78:87:96" ] 
       - attach_workspace:
-            at: ~/
-            
+            at: ~/      
       - run:
           name: Installing aws-cli
           command: |
@@ -312,8 +304,8 @@ jobs:
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml -v
+      - revert-migrations      
       - destroy_environment
-      - revert-migrations
       # Invoke jobs via workflows
       # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
