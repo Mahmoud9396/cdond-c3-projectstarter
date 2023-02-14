@@ -306,8 +306,54 @@ jobs:
             ansible-playbook -i inventory.txt deploy-backend.yml -v
       - revert-migrations      
       - destroy_environment
-      # Invoke jobs via workflows
-      # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
+
+smoke-test:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - run:
+          name: Installing aws-cli
+          command: |
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscli.zip"
+            unzip -o awscli.zip
+            sudo ./aws/install
+      - run:
+          name: Installing necessary packages
+          command: |
+            sudo apt update
+            sudo apt install -y tar gzip curl software-properties-common            
+      - install_node
+      - install_ansible 
+
+      - run:
+          name: Backend smoke test.
+          command: |
+            export BACKEND_IP=$(aws ec2 describe-instances \
+             --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+             --query 'Reservations[*].Instances[*].PublicIpAddress' \
+             --output text )
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "${API_URL}"
+            if curl -s ${API_URL}/api/status | grep "ok"
+            then
+              return 0
+            else
+              return 1
+            fi       
+
+      - run:
+          name: Frontend smoke test.
+          command: |
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-1.amazonaws.com/#/employees"            
+            echo ${URL} 
+            if curl -s ${URL} | grep "Welcome"
+            then
+              return 0
+            else
+              return 1
+            fi 
+      - revert-migrations
+      - destroy-environment       
 workflows:
   build-udacity-p3-workflow:
     jobs:
@@ -323,6 +369,9 @@ workflows:
           requires: [test-frontend]
       - deploy-infrastructure:
           requires: [test-frontend, test-backend, analyze_frontend, analyze_backend]
+          filters:
+            branches:
+              only: [circleci-project-setup]          
       - configure-infrastructure:
           requires: [deploy-infrastructure]
       - run-migrations:
@@ -330,4 +379,6 @@ workflows:
       - deploy-frontend:
           requires: [run-migrations]     
       - deploy-backend:
-          requires: [run-migrations] 
+          requires: [run-migrations]
+      - smoke-test:
+          requires: [deploy-backend, deploy-frontend]          
