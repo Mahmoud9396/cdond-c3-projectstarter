@@ -307,7 +307,7 @@ jobs:
       - revert-migrations      
       - destroy_environment
 
-smoke-test:
+  smoke-test:
     docker:
       - image: python:3.7-alpine3.11
     steps:
