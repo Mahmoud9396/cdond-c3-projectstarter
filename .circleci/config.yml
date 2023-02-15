@@ -307,7 +307,7 @@ jobs:
 
   smoke-test:
     docker:
-      - image: cimg/node:13.8.0
+      - image: cimg/base:stable
     steps:
       - run:
           name: Installing aws-cli
@@ -326,13 +326,18 @@ jobs:
       - run:
           name: Backend smoke test.
           command: |
-            export BACKEND_IP=$(aws ec2 describe-instances \
+            BACKEND_IP=$(aws ec2 describe-instances \
              --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
              --query 'Reservations[*].Instances[*].PublicIpAddress' \
              --output text )
-            export API_URL="http://${BACKEND_IP}:3030"
+            export API_URL=http://${BACKEND_IP}:3030
             echo "${API_URL}"
-            curl "${API_URL}/api/status"      
+            if curl -s $API_URL/api/status | grep "ok"
+            then
+              exit 0
+            else
+              exit 1
+            fi   
       - run:
           name: Frontend smoke test.
           command: |
@@ -395,6 +400,4 @@ workflows:
       - smoke-test:
           requires: [deploy-backend, deploy-frontend] 
       - cloudfront-update:
-          requires: [smoke-test]  
-      - cloudfront-update:
-          requires: [smoke-test]          
+          requires: [smoke-test]           
