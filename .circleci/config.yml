@@ -234,6 +234,51 @@ jobs:
  
       - destroy_environment
       - revert-migrations
+  deploy-frontend:
+    docker:
+      - image: cimg/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - build-frontend
+      - run:
+          name: Installing necessary packages
+          command: |
+            sudo apt update
+            sudo apt install -y tar gzip curl software-properties-common
+      - run:
+          name: Installing aws-cli
+          command: |
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscli.zip"
+            unzip -o awscli.zip
+            sudo ./aws/install
+      - install_ansible
+      - run:
+          name: Get backend url
+          command: |
+             export BACKEND_IP=$(aws ec2 describe-instances \
+             --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+             --query 'Reservations[*].Instances[*].PublicIpAddress' \
+             --output text )
+             API_URL="http://${BACKEND_IP}:3030"
+             echo "API_URL=${API_URL}" >> frontend/.env
+             cat frontend/.env
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/frontend/.env             
+      - run:
+          name: Deploy frontend objects
+          working_directory: ./frontend
+          command: |
+            cd frontend
+            npm install
+            npm run build
+            tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
+            aws s3 cp dist "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}" --recursive 
+      - destroy_environment
+      - revert-migrations      
 workflows:
   build-udacity-p3-workflow:
     jobs:
@@ -248,8 +293,13 @@ workflows:
       - analyze_frontend:
           requires: [test-frontend]
       - deploy-infrastructure:
-          requires: [test-frontend, test-backend, analyze_frontend, analyze_backend]         
+          requires: [test-frontend, test-backend, analyze_frontend, analyze_backend] 
+          filters:
+            branches:
+              only: [circleci-project-setup]          
       - configure-infrastructure:
           requires: [deploy-infrastructure]
       - run-migrations:
           requires: [configure-infrastructure]
+      - deploy-frontend:
+          requires: [run-migrations]           
