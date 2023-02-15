@@ -22,7 +22,7 @@
     TYPEORM_HOST: udapeople-db-prod.cjqwbt35ugyf.us-west-2.rds.amazonaws.com
     TYPEORM_PORT: 5432
     TYPEORM_USERNAME: postgres
-    TYPEORM_PASSWORD: udapeople123
+    TYPEORM_PASSWORD: mypassword
     TYPEORM_DATABASE: postgres
     
 - name: "Set pm2 start as service"
