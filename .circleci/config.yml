@@ -21,7 +21,7 @@ commands:
       - run:
           name: install Node.JS
           command: |
-            curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+            curl -fsSL https://deb.nodesource.com/setup_13.x | sudo -E bash -
             sudo apt install -y nodejs             
   destroy_environment:
     description: Destroy backend and frontend cloudformation stacks given a workflow ID.
@@ -210,7 +210,7 @@ jobs:
             ansible-playbook -i inventory.txt configure-server.yml -v 
   run-migrations:
     docker:
-      - image: circleci/node:13.8.0
+      - image: cimg/node:13.8.0
     steps:
       - checkout
       - run:
@@ -301,6 +301,7 @@ jobs:
           command: |
             sudo apt update
             sudo apt install -y tar gzip curl software-properties-common            
+      - install_node
       - install_ansible            
       - run:
           name: Deploy backend
