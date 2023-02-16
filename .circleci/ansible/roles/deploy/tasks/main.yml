@@ -5,13 +5,6 @@
   unarchive:
     src: files/artifact.tar.gz
     dest: .
-    
-- name: start app
-  become: yes
-  shell: |
-    npm install
-    pm2 stop all
-    pm2 start npm --name "udapeople-backend" -- run start
   environment:
     ENVIRONMENT: production
     NODE_ENV: production
@@ -23,7 +16,13 @@
     TYPEORM_PORT: "{{ lookup('env', 'TYPEORM_PORT') }}"
     TYPEORM_USERNAME: "{{ lookup('env', 'TYPEORM_USERNAME') }}"
     TYPEORM_PASSWORD: "{{ lookup('env', 'TYPEORM_PASSWORD') }}"
-    TYPEORM_DATABASE: "{{ lookup('env', 'TYPEORM_DATABASE') }}"    
+    TYPEORM_DATABASE: "{{ lookup('env', 'TYPEORM_DATABASE') }}"        
+- name: start app
+  become: yes
+  shell: |
+    npm install
+    pm2 stop all
+    pm2 start npm --name "udapeople-backend" -- run start
     
 - name: "Set pm2 start as service"
   become: yes
