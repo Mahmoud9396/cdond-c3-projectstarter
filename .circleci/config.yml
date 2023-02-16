@@ -277,7 +277,48 @@ jobs:
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}" --recursive 
       - destroy_environment
-      - revert-migrations      
+      - revert-migrations  
+  deploy-backend:
+    docker:
+      - image: cimg/python:3.7-node   
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - build-backend      
+      - add_ssh_keys:
+          fingerprints: ["79:b9:38:cc:04:11:26:53:a6:df:90:90:cd:78:87:96"] 
+      - attach_workspace:
+            at: ~/      
+      - run:
+          name: Installing aws-cli
+          command: |
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscli.zip"
+            unzip -o awscli.zip
+            sudo ./aws/install
+      - run:
+          name: Installing necessary packages
+          command: |
+            sudo apt update
+            sudo apt install -y tar gzip curl software-properties-common            
+      - install_ansible            
+      - run:
+          name: Deploy backend
+          command: |
+            cd backend 
+            npm i
+            npm run build
+            cd ..
+            tar -C backend -czvf artifact.tar.gz .
+            echo "tar -C backend -czvf artifact.tar.gz command is done"
+            mkdir -p ~/project/.circleci/ansible/roles/deploy/files/
+            mv artifact.tar.gz .circleci/ansible/roles/deploy/files/artifact.tar.gz
+            cd .circleci/ansible
+            echo "Contents  of the inventory.txt file is -------"
+            cat inventory.txt
+            ansible-playbook -i inventory.txt deploy-backend.yml -v
+      - destroy_environment      
+      - revert-migrations       
 workflows:
   build-udacity-p3-workflow:
     jobs:
@@ -301,4 +342,6 @@ workflows:
       - run-migrations:
           requires: [configure-infrastructure]
       - deploy-frontend:
-          requires: [run-migrations]           
+          requires: [run-migrations]   
+      - deploy-backend:
+          requires: [run-migrations]          
