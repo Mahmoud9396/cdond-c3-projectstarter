@@ -382,7 +382,29 @@ jobs:
                     --region us-east-1 \
                     --tags project=udapeople            
       - destroy_environment
-      - revert-migrations       
+      - revert-migrations  
+  cleanup:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Get old stack workflow id and Cleanup
+          command: |           
+            export OldWorkflowID=$(curl --insecure https://kvdb.io/WzgBMq8m3sC4V4bw4nTMT4/workflow_id)
+            export STACKS=($(aws --region us-east-1 cloudformation list-stacks --query "StackSummaries[*].StackName" --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
+            echo OldWorkflowID: "${OldWorkflowID}"
+            echo CIRCLE_WORKFLOW_ID "$CIRCLE_WORKFLOW_ID"
+            echo Stack names: "${STACKS[@]}"
+            if [[ ${STACKS[@]} =~ "${OldWorkflowID}" ]]
+            then
+              aws --region us-east-1 s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
+              aws --region us-east-1 cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
+              aws --region us-east-1 cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
+              echo "Delete Successfully"
+            else
+              echo "Delete Failed"            
+            fi      
 workflows:
   build-udacity-p3-workflow:
     jobs:
@@ -412,4 +434,6 @@ workflows:
       - smoke-test:
           requires: [deploy-backend, deploy-frontend] 
       - cloudfront-update:
-          requires: [smoke-test]          
+          requires: [smoke-test]   
+      - cleanup:
+          requires: [cloudfront-update]           
