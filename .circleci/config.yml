@@ -52,7 +52,7 @@ commands:
           name: Revert migrations
           when: on_fail
           command: |
-              SUCCESS=$(curl --insecure  https://kvdb.io/WzgBMq8m3sC4V4bw4nTMT4/migration_${CIRCLE_WORKFLOW_ID:0:7} )
+              SUCCESS=$(curl --insecure  https://kvdb.io/7nKT21fMzbZJhu7XdSmFRk/migration_${CIRCLE_WORKFLOW_ID:0:7} )
               # Logic for reverting the database state
               if (( $SUCCESS == 1 ));
               then
@@ -229,7 +229,7 @@ jobs:
             if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
             then
             echo "cd backend"
-              curl --insecure https://kvdb.io/WzgBMq8m3sC4V4bw4nTMT4//migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
+              curl --insecure https://kvdb.io/7nKT21fMzbZJhu7XdSmFRk//migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
             echo "send migration done"
  
@@ -371,7 +371,7 @@ jobs:
           command: |
             export WorkflowID=$(aws --region us-east-1 cloudformation list-exports --query "Exports[?Name==\`WorkflowID\`].Value" --no-paginate --output text)
             echo "Wokflow ID: $WorkflowID"
-            curl https://kvdb.io/WzgBMq8m3sC4V4bw4nTMT4/workflow_id -d "${WorkflowID}"
+            curl https://kvdb.io/7nKT21fMzbZJhu7XdSmFRk/workflow_id -d "${WorkflowID}"
       - run:
           name: Update cloudfront distribution
           command: |
@@ -391,7 +391,7 @@ jobs:
       - run:
           name: Get old stack workflow id and Cleanup
           command: |           
-            export OldWorkflowID=$(curl --insecure https://kvdb.io/WzgBMq8m3sC4V4bw4nTMT4/workflow_id)
+            export OldWorkflowID=$(curl --insecure https://kvdb.io/7nKT21fMzbZJhu7XdSmFRk/workflow_id)
             export STACKS=($(aws --region us-east-1 cloudformation list-stacks --query "StackSummaries[*].StackName" --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
             echo OldWorkflowID: "${OldWorkflowID}"
             echo CIRCLE_WORKFLOW_ID "$CIRCLE_WORKFLOW_ID"
